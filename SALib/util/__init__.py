@@ -11,8 +11,8 @@ from scipy import stats
 __all__ = ["scale_samples", "read_param_file"]
 
 
-def scale_samples(params,problem):
-    '''Rescale samples in 0-to-1 rang eto arbitrary bounds and distribution
+def scale_samples(params, problem):
+    '''Rescale samples in 0-to-1 range to arbitrary bounds and distribution
 
     Arguments
     ---------
@@ -25,16 +25,15 @@ def scale_samples(params,problem):
     bounds = problem['bounds']
     try:
         dists = problem['dists']
-        if dists == None:
-            raise ValueError;
+        if dists is None:
+            raise ValueError
         lower_bound, upper_bound = check_bounds(problem)
         limited_params = limit_samples(params, upper_bound, lower_bound, dists)
-    except (KeyError,ValueError):
+    except (KeyError, ValueError):
         dists = []
         for i in range(problem['num_vars']):
             dists.append('unif')
         limited_params = params
-
 
     b = np.array(bounds)
 
@@ -50,22 +49,22 @@ def scale_samples(params,problem):
         if dists[i] == 'triang':
             # checking for correct parameters
             if b1 <= 0 or b2 <= 0 or b2 >= 1:
-                raise ValueError('''Triangular distribution: Scale must be
-                       greater than zero; peak on interval [0,1]''')
+                raise ValueError('Triangular distribution: Scale must be'
+                                 'greater than zero; peak on interval [0,1]')
             else:
                 conv_params[:, i] = stats.triang.ppf(
                     limited_params[:, i], c=b2, scale=b1, loc=0)
 
         elif dists[i] == 'unif':
             if b1 >= b2:
-                raise ValueError('''Uniform distribution: lower bound
-                       must be less than upper bound''')
+                raise ValueError('Uniform distribution: lower bound'
+                                 'must be less than upper bound')
             else:
                 conv_params[:, i] = limited_params[:, i] * (b2 - b1) + b1
 
         elif dists[i] == 'norm':
             if b2 <= 0:
-                raise ValueError('''Normal distribution: stdev must be > 0''')
+                raise ValueError('Normal distribution: stdev must be > 0')
             else:
                 conv_params[:, i] = stats.norm.ppf(
                     limited_params[:, i], loc=b1, scale=b2)
@@ -115,6 +114,7 @@ def unscale_samples(params, bounds):
     np.divide(np.subtract(params, lower_bounds, out=params),
               np.subtract(upper_bounds, lower_bounds),
               out=params)
+
 
 def read_param_file(filename, delimiter=None):
     """Unpacks a parameter file into a dictionary
@@ -221,7 +221,7 @@ def compute_groups_matrix(groups):
         return None
 
     num_vars = len(groups)
-    
+
     # Get a unique set of the group names
     unique_group_names = list(OrderedDict.fromkeys(groups))
     number_of_groups = len(unique_group_names)
@@ -272,7 +272,8 @@ def limit_samples(samples, upper_bound, lower_bound, dist):
        lower_bound : float
            the lower bound samples values will be limited to
        dist: list
-           a list of the distributions the samples will be non uniformely scaled to
+           a list of the non-uniform distributions the samples will be
+           scaled to
        Returns
        -------
        limited_samples : ndarray
@@ -281,9 +282,9 @@ def limit_samples(samples, upper_bound, lower_bound, dist):
     bounds = []
     for i in dist:
         if i in ['norm', 'lognorm']:
-            bounds.append([lower_bound,upper_bound])
+            bounds.append([lower_bound, upper_bound])
         else:
-            bounds.append([0,1])
+            bounds.append([0, 1])
 
     limited_sample = samples
 
@@ -297,6 +298,7 @@ def limit_samples(samples, upper_bound, lower_bound, dist):
            out=limited_sample)
 
     return limited_sample
+
 
 def check_bounds(problem):
     """check user supplied distribution bounds for validity
@@ -314,7 +316,7 @@ def check_bounds(problem):
     """
 
     default_upper_bound = 0.999999998026825
-    default_lower_bound = 1-default_upper_bound
+    default_lower_bound = 1 - default_upper_bound
 
     if not problem.get('dists_upper_bound'):
         upper_bound = default_upper_bound
@@ -333,4 +335,4 @@ def check_bounds(problem):
     if upper_bound < lower_bound:
         raise ValueError("Upper bound must be greater than lower bound")
 
-    return lower_bound,upper_bound
+    return lower_bound, upper_bound
