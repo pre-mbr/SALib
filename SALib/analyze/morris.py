@@ -100,11 +100,12 @@ def analyze(problem, X, Y,
     # Output the Mu, Mu*, and Sigma Values. Also return them in case this is
     # being called from Python
     Si = ResultDict((k, [None] * num_vars)
-              for k in ['names', 'mu', 'mu_star', 'sigma', 'mu_star_conf'])
+              for k in ['names', 'mu', 'mu_star', 'median', 'sigma', 'mu_star_conf'])
     Si['mu'] = np.average(ee, 1)
     Si['mu_star'] = np.average(np.abs(ee), 1)
     Si['sigma'] = np.std(ee, axis=1, ddof=1)
     Si['names'] = problem['names']
+    Si['median'] = np.median(np.abs(ee), 1)
 
     for j in range(num_vars):
         Si['mu_star_conf'][j] = compute_mu_star_confidence(
@@ -112,16 +113,18 @@ def analyze(problem, X, Y,
 
     if groups is None:
         if print_to_console:
-            print("{0:<30} {1:>10} {2:>10} {3:>15} {4:>10}".format(
+            print("{0:<30} {1:>10} {2:>10} {3:>10} {4:>15} {5:>10}".format(
                 "Parameter",
+                "Median",
                 "Mu_Star",
                 "Mu",
                 "Mu_Star_Conf",
                 "Sigma")
             )
             for j in list(range(num_vars)):
-                print("{0:30} {1:10.3f} {2:10.3f} {3:15.3f} {4:10.3f}".format(
+                print("{0:30} {1:10.3f} {2:10.3f} {3:10.3f} {4:15.3f} {5:10.3f}".format(
                     Si['names'][j],
+                    Si['median'][j],
                     Si['mu_star'][j],
                     Si['mu'][j],
                     Si['mu_star_conf'][j],
