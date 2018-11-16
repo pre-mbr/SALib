@@ -31,26 +31,35 @@ def _sort_Si_by_index(Si, key, index):
     return np.array([Si[key][x] for x in index])
 
 
-def horizontal_bar_plot(ax, Si, param_dict, sortby='mu_star', unit=''):
+def horizontal_bar_plot(ax, Si, param_dict, plot_var='mu_star',sortby='mu_star', unit=''):
     '''Updates a matplotlib axes instance with a horizontal bar plot
 
     of mu_star, with error bars representing mu_star_conf
     '''
 
-    assert sortby in ['mu_star', 'mu_star_conf', 'sigma', 'mu']
+    assert sortby in ['mu_star', 'mu_star_conf', 'sigma', 'mu', 'median']
 
     # Sort all the plotted elements by mu_star (or optionally another
     # metric)
     names_sorted = _sort_Si(Si, 'names', sortby)
     mu_star_sorted = _sort_Si(Si, 'mu_star', sortby)
     mu_star_conf_sorted = _sort_Si(Si, 'mu_star_conf', sortby)
+    median_sorted = _sort_Si(Si, 'median', sortby)
 
     # Plot horizontal barchart
     y_pos = np.arange(len(mu_star_sorted))
     plot_names = names_sorted
 
+    if plot_var == 'mu_star':
+        symbol = r'\mu'
+        y_value = mu_star_sorted
+
+    if plot_var == 'median':
+        symbol = 'x'
+        y_value = median_sorted
+
     out = ax.barh(y_pos,
-                  mu_star_sorted,
+                  y_value,
                   xerr=mu_star_conf_sorted,
                   align='center',
                   ecolor='black',
@@ -58,7 +67,7 @@ def horizontal_bar_plot(ax, Si, param_dict, sortby='mu_star', unit=''):
 
     ax.set_yticks(y_pos)
     ax.set_yticklabels(plot_names)
-    ax.set_xlabel(r'$\mu^\star$' + unit)
+    ax.set_xlabel(r'${}^\star$ '.format(symbol) + unit)
 
     ax.set_ylim(min(y_pos)-1, max(y_pos)+1)
 
@@ -72,6 +81,12 @@ def covariance_plot(ax, Si, plot_var='mu_star', unit=""):
     num_vars = len(Si['names'])
     colors = create_marker_styles(num_vars)[0]
     markers = create_marker_styles(num_vars)[1]
+
+    if plot_var == 'mu_star':
+        symbol = r'\mu'
+
+    if plot_var == 'median':
+        symbol = 'x'
 
     if Si['sigma'] is not None:
         # sigma is not present if using morris groups
@@ -92,9 +107,9 @@ def covariance_plot(ax, Si, plot_var='mu_star', unit=""):
         line3, = ax.plot(x_axis_bounds, 0.1 * x_axis_bounds, 'k-.')
 
         line_legend = ax.legend(handles=(line1, line2, line3),
-                                labels=(r'$\sigma / \mu^{\star} = 1.0$',
-                                        r'$\sigma / \mu^{\star} = 0.5$',
-                                        r'$\sigma / \mu^{\star} = 0.1$'),
+                                labels=(r'$\sigma / {}^{} = 1.0$'.format(symbol, r'\star'),
+                                        r'$\sigma / {}^{} = 0.5$'.format(symbol, r'\star'),
+                                        r'$\sigma / {}^{} = 0.1$'.format(symbol, r'\star')),
                                 loc='best')
 
         plt.gca().add_artist(line_legend)
@@ -111,7 +126,7 @@ def covariance_plot(ax, Si, plot_var='mu_star', unit=""):
         output = ax.scatter(Si['mu_star'], y, c=u'k', marker=u'o')
         ax.set_ylabel(r'$95\% CI$')
 
-    ax.set_xlabel(r'$\mu^\star$ ' + unit)
+    ax.set_xlabel(r'${}^\star$ '.format(symbol) + unit)
     ax.set_ylim(0-(0.01 * np.array(ax.get_ylim()[1])), )
 
     return output
